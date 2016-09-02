@@ -1,0 +1,21 @@
+'use strict';
+
+const _ = require('lodash');
+const fs = require('fs');
+const async = require('async');
+const request = require('request');
+const url = require('url');
+const utf8 = require('utf8');
+const moment = require('moment');
+const mongoose = require('mongoose');
+const config = require('config');
+const crypto = require('crypto');
+const _u = require('./common/util');
+const logger = _u.logger;
+const loggerD = _u.loggerD;
+const eLog = _u.eLog;
+const User = _u.model('User');
+const redisService = _u.service('redis');
+const redisdb = require('./common/redis');
+let tokenRedis = redisdb.token;
+let dataRedis = redisdb.data;
