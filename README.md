@@ -13,6 +13,17 @@ npm install -g pm2 #production
 # 相关依赖，可以考虑使用docker相关镜像
 mongodb (3.4.x)
 redis (4.x)
+
+docker run -d --name mongo27017 \
+    -p 27017:27017 \
+    -v /data/db:/data/db \
+    mongo:3.4
+
+docker run -d --name redis6379 \
+    -p 6379:6379 \
+    -v /data/redis:/data \
+    -v ~/aowa-server/conf/redis.v4.conf:/usr/local/etc/redis/redis.conf \
+    redis:4
 ```
 ### 升级node
 ```
