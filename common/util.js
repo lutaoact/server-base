@@ -10,7 +10,6 @@ const loggerConf = require('./initLogger');
 
 exports.logger  = loggerConf.logger;
 exports.loggerD = loggerConf.loggerD;
-exports.eLog    = loggerConf.eLog;
 
 function sha1(str) {
   return crypto.createHash('sha1').update(str).digest('hex');
@@ -38,20 +37,6 @@ exports.model = (name) => {
 
 exports.service = (name) => {
   return require(`../services/${name}`);
-};
-
-exports.mySeries = (tasks, callback) => {
-  let prev;
-  for (let i in tasks) {
-    let task = tasks[i];
-    if (prev) {
-      tasks[i] = [prev, task];
-    } else {
-      tasks[i] = task;
-    }
-    prev = i;
-  }
-  async.auto(tasks, callback);
 };
 
 function genCode(type, count) {

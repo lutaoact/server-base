@@ -4,54 +4,51 @@ const config = require('config');
 const log4js = require('log4js');
 const moment = require('moment');
 
-log4js.configure({
-  appenders: [{
-    type: 'console'
-  }, {
-    type: 'dateFile' ,
-    filename: config.logger.path,
-    pattern: ".yyyyMMdd",
-    alwaysIncludePattern: false,
-    category: 'APP',
-  }, {
-    type: 'dateFile',
-    filename: config.logger.dataPath,
-    pattern: ".yyyyMM",
-    alwaysIncludePattern: false,
-    layout: {
-      type: 'pattern',
-      pattern: "%m",
-    },
-    category: 'DATA',
-  }, {
-    type: 'file',
-    filename: config.logger.eLog,
-    category: 'ELOG',
-  }]
+/*
+ * 自定义layout: json，会在category data中配置使用：
+ *   const loggerD = log4js.getLogger('data')
+ *   loggerD.info({a: 1, b: 2})
+ *   输出的内容如下：
+ *   2018-01-06T12:25:06+08:00 {"a":1,"b":2}
+ */
+log4js.addLayout('json', function(config) {
+  return function(logEvent) {
+    return Array.prototype.join.call([
+      moment(logEvent.startTime).format(),
+      JSON.stringify(logEvent.data[0]),
+    ], " ");
+  };
 });
 
-const logger = log4js.getLogger('APP');
-logger.setLevel(config.logger.level);
+log4js.configure({
+  appenders: {
+    out: {type: 'stdout', layout: { type: 'colored' }},
+    app: {
+      type: 'dateFile',
+      filename: config.logger.path,
+      alwaysIncludePattern: false,
+      pattern: ".yyyyMMdd",
+      daysToKeep: 30,
+    },
+    json: {
+      type: 'file',
+      filename: config.logger.dataPath,
+      layout: {type: 'json'},
+      backups: 30,
+    },
+  },
+  categories: {
+    default: {appenders: ['out', 'app'], level: 'info'},
+    data: {appenders: ['out', 'json'], level: 'info'},
+  },
+});
 
-const write = function() {
-  if (typeof arguments[0] === 'object') {
-    arguments[0] = JSON.stringify(arguments[0]);
-  }
-  Array.prototype.unshift.call(arguments, moment().format());
-  this.info(Array.prototype.join.call(arguments, " "));
-};
+const logger = log4js.getLogger();
+const loggerD = log4js.getLogger('data')
 
-const loggerD = log4js.getLogger('DATA');
-loggerD.setLevel('INFO');
-loggerD.write = write
-
-const eLogger = log4js.getLogger('ELOG');
-eLogger.setLevel('ERROR');
+//取消注释可查看打印效果
+//logger.info("hello world");
+//loggerD.info({a: 1, b: 2})
 
 exports.logger  = logger;
 exports.loggerD = loggerD;
-
-exports.eLog = function() {
-  let params = Array.prototype.slice.call(arguments, 0);
-  eLogger.error.apply(eLogger, params);
-};
